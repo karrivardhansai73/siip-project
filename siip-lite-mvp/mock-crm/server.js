@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
-const crmPort = Number.parseInt(process.env.CRM_PORT || "4000", 10);
+const crmPort = Number.parseInt(process.env.PORT || process.env.CRM_PORT || "4000", 10);
+const backendHttpUrl = process.env.BACKEND_HTTP_URL || "http://localhost:3000";
+const backendWsUrl = process.env.BACKEND_WS_URL || "ws://localhost:3000";
 
 const validToken = require("jsonwebtoken").sign({ user: "crm" }, "secret");
 const apiKey = process.env.CRM_API_KEY || "student-dev-key";
@@ -197,7 +199,7 @@ app.get("/", (req, res) => {
 
           async function postWebhook(token, payload) {
             try {
-              const res = await fetch("http://localhost:3000/webhook", {
+              const res = await fetch("${backendHttpUrl}/webhook", {
                 method: "POST",
                 headers: {
                   "Authorization": token,
@@ -227,7 +229,7 @@ app.get("/", (req, res) => {
             }
           }
 
-          const ws = new WebSocket("ws://localhost:8080");
+          const ws = new WebSocket("${backendWsUrl}");
           ws.onopen = () => {
             document.getElementById("status").textContent = "WebSocket connected";
           };

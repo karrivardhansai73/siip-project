@@ -19,7 +19,7 @@ function parseList(value, fallback) {
 
 function loadConfigFromEnv(env = process.env) {
   return {
-    backendPort: parseInteger(env.BACKEND_PORT, 3000),
+    backendPort: parseInteger(env.BACKEND_PORT || env.PORT, 3000),
     jwtSecret: env.JWT_SECRET || "secret",
     apiKeys: parseList(env.API_KEYS, ["student-dev-key"]),
     billingUrl: env.BILLING_URL || "http://localhost:3001/receive",

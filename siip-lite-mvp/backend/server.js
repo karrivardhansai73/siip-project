@@ -9,6 +9,8 @@ const { buildApp, loadConfigFromEnv } = require("./app");
 
 const config = loadConfigFromEnv();
 
+let wss;
+
 const dbClient = new Client({
   user: process.env.POSTGRES_USER || "siip",
   host: process.env.POSTGRES_HOST || "127.0.0.1",
@@ -19,10 +21,11 @@ const dbClient = new Client({
 
 const redisClient = new Redis(process.env.REDIS_URL || undefined);
 
-const wsPort = Number.parseInt(process.env.WS_PORT || "8080", 10);
-const wss = new WebSocket.Server({ port: wsPort });
-
 function broadcast(payload) {
+  if (!wss) {
+    return;
+  }
+
   const data = JSON.stringify(payload);
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -30,10 +33,6 @@ function broadcast(payload) {
     }
   });
 }
-
-wss.on("connection", () => {
-  console.log("WebSocket client connected");
-});
 
 const app = buildApp({
   config,
@@ -51,8 +50,15 @@ async function start() {
       port: config.backendPort,
       host: "0.0.0.0",
     });
+
+    // Share the same HTTP server port so WebSocket works on PaaS hosts.
+    wss = new WebSocket.Server({ server: app.server });
+    wss.on("connection", () => {
+      console.log("WebSocket client connected");
+    });
+
     console.log(`Backend listening on port ${config.backendPort}`);
-    console.log(`WebSocket listening on port ${wsPort}`);
+    console.log(`WebSocket listening on port ${config.backendPort}`);
   } catch (error) {
     console.error("Startup failed", error);
     process.exit(1);
