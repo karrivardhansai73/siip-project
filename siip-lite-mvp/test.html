@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Test</title>
+</head>
+<body>
+
+<h2>Live Events</h2>
+<ul id="events"></ul>
+
+<script>
+  // connect to WebSocket
+  const ws = new WebSocket("ws://localhost:8080"); // use your port
+
+  ws.onopen = () => {
+    console.log("✅ Connected to WebSocket");
+  };
+
+  ws.onmessage = (event) => {
+    console.log("LIVE EVENT:", event.data);
+
+    // show in UI
+    const li = document.createElement("li");
+    li.textContent = event.data;
+
+    document.getElementById("events").appendChild(li);
+  };
+
+  ws.onerror = (err) => {
+    console.log("❌ WebSocket error:", err);
+  };
+
+  ws.onclose = () => {
+    console.log("🔌 WebSocket disconnected");
+  };
+  
+</script>
+
+</body>
+</html>
